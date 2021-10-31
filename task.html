@@ -1,0 +1,160 @@
+<html>
+<style>
+    body {
+        background: rgb(231, 233, 233);
+        text-align: center;
+        font-size: 20px;
+    }
+
+    svg {
+        margin: 40px 0;
+    }
+
+    line {
+        stroke-width: 3px;
+        stroke: rgb(124, 11, 11);
+    }
+
+    .graph-element {
+        stroke: rgb(93, 93, 155);
+    }
+
+    text {
+        fill: rgb(93, 93, 155);
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    circle {
+        fill: rgb(93, 93, 155);
+    }
+
+    .inputs-col {
+        display: flex;
+        flex-direction: column;
+        width: 200px;
+        margin: auto;
+    }
+
+    button {
+        width: 200px;
+        height: 50px;
+        margin: 10px;
+        background: rgb(124, 11, 11);
+        border: none;
+        color: white;
+        font-size: 20px;
+    }
+</style>
+<script>
+    let v = 70, theta = toRadians(60), g = 9.8, timeOut, ball;
+    function toRadians(angle) {
+        return angle * (Math.PI / 180);
+    }
+    function getY(x) {
+        return x * Math.tan(theta) - g / (2 * Math.pow(v * Math.cos(theta), 2)) * x * x
+    }
+
+    function handleThetaChange() {
+        const value = document.getElementById('theta').value
+        document.getElementById('theta-label').innerText = "Theta=" + value + "°"
+        theta = toRadians(value)
+    }
+    function handleVelocityChange() {
+        v = document.getElementById('v').value
+        document.getElementById('v-label').innerText = "Velocity=" + v
+    }
+    function play() {
+        ball.setAttribute("r", 20)
+        reset()
+        setDisableInputs(true)
+        animate(0, 500)
+    }
+
+    function animate(x, prevY) {
+        let y = 500 - getY(x)
+        createLine(30 + x, 30 + x + 1, prevY, y, "graph-element")
+        ball.setAttribute("cx", 30 + x + 1)
+        ball.setAttribute("cy", y)
+        ball.setAttribute("r", 20)
+        if (x > 30 && y >= 480)
+            return
+        if (x >= 500 || y < 0)
+            return
+        timeOut = setTimeout(animate, 20, x + 1, y);
+    }
+
+    function createAxes() {
+        createLine(30, 530, 500, 500)
+        createLine(30, 30, 500, 0)
+        createText(520, 490, "x")
+        createText(40, 15, "y")
+        for (let i = 0; i <= 500; i += 50) {
+            createText(i + 30, 520, i)
+            if (i === 0) continue
+            createText(0, 500 - i, i)
+        }
+    }
+    function createLine(x1, x2, y1, y2, className = "") {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', "line");
+        line.setAttribute("x1", x1)
+        line.setAttribute("x2", x2)
+        line.setAttribute("y1", y1)
+        line.setAttribute("y2", y2)
+        line.setAttribute("class", className)
+        document.getElementById("plot").appendChild(line)
+    }
+    function createText(x, y, content) {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', "text");
+        text.setAttribute("x", x)
+        text.setAttribute("y", y)
+        text.textContent = content
+        document.getElementById("plot").appendChild(text)
+    }
+
+    function reset() {
+        clearTimeout(timeOut)
+        ball.removeAttribute("r");
+        document.querySelectorAll('.graph-element').forEach(e => e.remove());
+        setDisableInputs(false)
+    }
+
+    function setDisableInputs(disabled) {
+        document.querySelectorAll(".slider-input").forEach(e => e.disabled = disabled)
+    }
+
+    function init() {
+        createAxes();
+        ball = document.getElementById("ball")
+        document.getElementById("theta-label").innerText = "Theta =" + document.getElementById("theta").value + "°"
+        document.getElementById("v-label").innerText = "Velocity =" + v
+    }
+
+</script>
+
+<body onload="init()">
+    <h3> Projectile Motion </h3>
+    <div class="inputs-col">
+        <div>
+            <label id="theta-label" for="theta"> </label>
+            <input class="slider-input" id="theta" type='range' min="10" max="80" value="60"
+                onchange="handleThetaChange()" />
+        </div>
+        <div>
+            <label id="v-label" for="v"> Velocity = </label>
+            <input class="slider-input" id="v" type='range' min="20" max="80" value="70"
+                onchange="handleVelocityChange()" />
+        </div>
+    </div>
+
+
+    <svg id="plot" width="530" height="530">
+        <circle id="ball"></circle>
+    </svg>
+    <div>
+        <button onclick='play()'> Play</button>
+        <button onclick='reset()'> Reset</button>
+    </div>
+</body>
+
+</html>
